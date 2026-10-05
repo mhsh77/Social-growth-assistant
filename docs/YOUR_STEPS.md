@@ -71,7 +71,8 @@ sga daily
 ```
 1. Tabs open; scroll each ~30 s; press Enter.
 2. Wait about a minute while it filters, ranks and drafts.
-3. For each item: pick a draft, edit it, or skip. Approving opens X's reply box; **you** read
+3. For each item: pick a draft, edit it, or skip. Editing opens your `$EDITOR`
+   (set `export EDITOR=nano`, or `code --wait`; Notepad on Windows); save and close to continue. Approving opens X's reply box; **you** read
    it and click Reply. Nothing is ever sent without that click.
 
 ## Optional: reminders

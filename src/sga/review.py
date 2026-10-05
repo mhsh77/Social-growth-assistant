@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 
+import click
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -54,7 +55,7 @@ class Reviewer:
         self.store = store
         self.console = console or Console()
         self.ask = ask or (lambda prompt: typer.prompt(prompt, default="", show_default=False))
-        self.edit = edit or (lambda text: typer.edit(text))
+        self.edit = edit or (lambda text: click.edit(text))
         self.open_url = open_url
 
     def run(self, run_id: str, items: list[ShortlistItem]) -> ReviewStats:

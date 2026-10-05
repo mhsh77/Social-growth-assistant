@@ -109,3 +109,11 @@ def test_open_post_mode_opens_the_post_itself():
     r, opened = reviewer(["1"], config=Config(review=Review(reply_mode="open_post")))
     r.run("run", [make_item("5")])
     assert opened == ["https://x.com/u5/status/5"]
+
+
+def test_default_editor_uses_click_edit(monkeypatch):
+    import click
+
+    monkeypatch.setattr(click, "edit", lambda text: text + " (edited)")
+    r = Reviewer(Config(), Store(":memory:"))
+    assert r.edit("draft") == "draft (edited)"
