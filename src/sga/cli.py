@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import webbrowser
+from datetime import date, timedelta
 from pathlib import Path
 
 import typer
@@ -18,6 +19,7 @@ from .llm import make_client
 from .pipeline import RunResult, build_shortlist
 from .review import Reviewer
 from .store import Store
+from .summary import format_summary, summarize_day
 
 app = typer.Typer(
     help="Find relevant X posts you browsed and draft replies. Never posts on its own.",
@@ -182,3 +184,33 @@ def review(config_path: Path = ConfigOption):
     """Review the latest shortlist one item at a time: approve, edit or skip."""
     config, store = _open(config_path)
     review_latest(config, store)
+
+
+@app.command()
+def summary(config_path: Path = ConfigOption, days: int = typer.Option(1, help="Days to show")):
+    """Show what was found, shortlisted and approved on recent days."""
+    _, store = _open(config_path)
+    for offset in range(days, -1, -1):
+        console.print(format_summary(summarize_day(store, date.today() - timedelta(days=offset))))
+
+
+@app.command()
+def daily(
+    config_path: Path = ConfigOption,
+    collect_first: bool = typer.Option(True, "--collect/--no-collect", help="Capture first"),
+    review_after: bool = typer.Option(True, "--review/--no-review", help="Review at the end"),
+):
+    """The daily routine: capture → summary of yesterday → shortlist + drafts → review."""
+    load_dotenv()
+    config, store = _open(config_path)
+    if collect_first:
+        collect_posts(config, store, open_pages=True, save_raw=False)
+    console.rule("Yesterday")
+    console.print(format_summary(summarize_day(store, date.today() - timedelta(days=1))))
+    console.rule("Today")
+    with console.status("Filtering, ranking and drafting…"):
+        result = build_shortlist(config, store, make_client())
+    print_run(result)
+    if review_after and result.shortlist:
+        console.rule("Review")
+        review_latest(config, store)

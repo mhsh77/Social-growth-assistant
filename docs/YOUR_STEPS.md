@@ -73,3 +73,13 @@ sga daily
 2. Wait about a minute while it filters, ranks and drafts.
 3. For each item: pick a draft, edit it, or skip. Approving opens X's reply box; **you** read
    it and click Reply. Nothing is ever sent without that click.
+
+## Optional: reminders
+A scheduler can only remind you, because capture needs you browsing. See "Scheduling" in
+the [README](../README.md) for cron/Task Scheduler lines, or just set a calendar reminder.
+
+## When to come back to me (Claude)
+- Capture stops working (badge at 0): send one `data/raw/` file, as in step 6.
+- Rankings feel off (wrong posts on top): tell me 2–3 examples of good and bad picks; I'll tune
+  the scoring prompt and weights.
+- Drafts don't sound like you: add more `voice_examples` first, then tell me what's off.
