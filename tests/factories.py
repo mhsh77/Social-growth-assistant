@@ -7,7 +7,9 @@ exercise the parser. If X changes the shape, capture a real payload with
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 NOW = datetime(2026, 10, 5, 12, 0, tzinfo=timezone.utc)
 
@@ -81,3 +83,22 @@ def search_payload(*entries: dict) -> dict:
             }
         }
     }
+
+
+class FakeClient:
+    """Stands in for anthropic.Anthropic. `responder(kwargs)` returns a dict (JSON reply),
+    a (stop_reason, dict) tuple, or raises."""
+
+    def __init__(self, responder):
+        self.calls: list[dict] = []
+        self._responder = responder
+        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+
+    def _create(self, **kwargs):
+        self.calls.append(kwargs)
+        out = self._responder(kwargs)
+        stop_reason, data = out if isinstance(out, tuple) else ("end_turn", out)
+        text = data if isinstance(data, str) else json.dumps(data)
+        return SimpleNamespace(
+            stop_reason=stop_reason, content=[SimpleNamespace(type="text", text=text)]
+        )

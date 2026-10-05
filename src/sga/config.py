@@ -62,18 +62,22 @@ class Filters(BaseModel):
     exclude_handles: list[str] = Field(default_factory=list)
 
 
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
+
+
 class Ranking(BaseModel):
     model: str = "claude-opus-5-5"
-    effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
+    effort: Effort | None = "low"  # None for models without effort support (e.g. Haiku 4.5)
     shortlist_size: int = Field(default=7, ge=1, le=50)
     min_relevance: float = 5
     min_opportunity: float = 4
     batch_size: int = Field(default=10, ge=1, le=50)
+    max_to_rank: int = Field(default=60, ge=1)  # caps classification cost per run
 
 
 class Drafting(BaseModel):
     model: str = "claude-opus-5-5"
-    effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
+    effort: Effort | None = "medium"
     drafts_per_post: int = Field(default=2, ge=1, le=3)
     max_chars: int = 280
 

@@ -40,11 +40,12 @@ filters:
 
 ranking:
   model: claude-opus-5-5
-  effort: low                 # classification is simple; raise if ranking looks off
+  effort: low                 # low/medium/high; use null for models without effort (Haiku 4.5)
   shortlist_size: 7
   min_relevance: 5            # 0-10
   min_opportunity: 4          # 0-10
   batch_size: 10              # posts per classification request
+  max_to_rank: 60             # at most this many posts are sent to the model per run
 
 drafting:
   model: claude-opus-5-5

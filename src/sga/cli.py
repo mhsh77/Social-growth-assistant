@@ -7,12 +7,15 @@ import webbrowser
 from pathlib import Path
 
 import typer
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
 
 from .config import Config, load_config
 from .filters import apply_filters
 from .ingest import CaptureServer
+from .llm import make_client
+from .pipeline import RunResult, build_shortlist
 from .store import Store
 
 app = typer.Typer(
@@ -126,3 +129,34 @@ def candidates(config_path: Path = ConfigOption, limit: int = 20):
     console.print(table)
     if dropped:
         console.print("Filtered out: " + ", ".join(f"{k}: {v}" for k, v in dropped.items()))
+
+
+def print_run(result: RunResult) -> None:
+    console.print(
+        f"Captured {result.captured} → {result.after_filters} after filters → "
+        f"{result.scored} ranked → [bold]{len(result.shortlist)} shortlisted[/bold]"
+    )
+    if result.dropped:
+        console.print("Filtered out: " + ", ".join(f"{k}: {v}" for k, v in result.dropped.items()))
+    for warning in result.warnings:
+        console.print(f"[yellow]! {warning}[/yellow]")
+    table = Table(title=f"Shortlist {result.run_id}")
+    for col in ("#", "Score", "Author", "Why", "Text"):
+        table.add_column(col, overflow="fold")
+    for n, item in enumerate(result.shortlist, start=1):
+        table.add_row(
+            str(n),
+            f"{item.combined:.1f}",
+            f"@{item.post.author_handle} ({item.post.author_followers})",
+            item.why,
+            item.post.text[:160],
+        )
+    console.print(table)
+
+
+@app.command()
+def shortlist(config_path: Path = ConfigOption):
+    """Filter, rank and save today's shortlist from captured posts."""
+    load_dotenv()
+    config, store = _open(config_path)
+    print_run(build_shortlist(config, store, make_client()))
