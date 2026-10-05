@@ -155,8 +155,11 @@ def print_run(result: RunResult) -> None:
 
 
 @app.command()
-def shortlist(config_path: Path = ConfigOption):
-    """Filter, rank and save today's shortlist from captured posts."""
+def shortlist(
+    config_path: Path = ConfigOption,
+    drafts: bool = typer.Option(True, "--drafts/--no-drafts", help="Also generate drafts"),
+):
+    """Filter, rank, draft and save a shortlist from captured posts."""
     load_dotenv()
     config, store = _open(config_path)
-    print_run(build_shortlist(config, store, make_client()))
+    print_run(build_shortlist(config, store, make_client(), with_drafts=drafts))

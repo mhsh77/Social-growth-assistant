@@ -1,4 +1,4 @@
-"""Filter → rank → save. Shared by `sga shortlist` and `sga daily`."""
+"""Filter → rank → draft → save. Shared by `sga shortlist` and `sga daily`."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .config import Config
+from .drafting import draft_replies
 from .filters import apply_filters
 from .models import ShortlistItem
 from .ranking import prioritize_for_scoring, score_posts, select_shortlist
@@ -29,7 +30,9 @@ def new_run_id() -> str:
     return time.strftime("%Y%m%d-%H%M%S")
 
 
-def build_shortlist(config: Config, store: Store, client: Any) -> RunResult:
+def build_shortlist(
+    config: Config, store: Store, client: Any, with_drafts: bool = True
+) -> RunResult:
     run_id = new_run_id()
     captured = store.candidates()
     kept, dropped = apply_filters(
@@ -49,6 +52,8 @@ def build_shortlist(config: Config, store: Store, client: Any) -> RunResult:
     scores, score_warnings = score_posts(client, to_score, config) if to_score else ({}, [])
     warnings += score_warnings
     shortlist = select_shortlist(to_score, scores, config.ranking, config.sources)
+    if with_drafts and shortlist:
+        warnings += draft_replies(client, shortlist, config)
 
     store.save_shortlist(run_id, shortlist)
     store.record_run(run_id, len(captured), len(kept), len(shortlist))
