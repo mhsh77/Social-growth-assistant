@@ -16,6 +16,7 @@ from .filters import apply_filters
 from .ingest import CaptureServer
 from .llm import make_client
 from .pipeline import RunResult, build_shortlist
+from .review import Reviewer
 from .store import Store
 
 app = typer.Typer(
@@ -163,3 +164,21 @@ def shortlist(
     load_dotenv()
     config, store = _open(config_path)
     print_run(build_shortlist(config, store, make_client(), with_drafts=drafts))
+
+
+def review_latest(config: Config, store: Store) -> None:
+    run_id = store.latest_run_id()
+    if run_id is None:
+        console.print("No shortlist yet. Run `sga daily` (or `sga shortlist`) first.")
+        return
+    stats = Reviewer(config, store, console).run(run_id, store.shortlist(run_id))
+    console.print(
+        f"Done: {stats.approved} approved, {stats.edited} edited, {stats.skipped} skipped."
+    )
+
+
+@app.command()
+def review(config_path: Path = ConfigOption):
+    """Review the latest shortlist one item at a time: approve, edit or skip."""
+    config, store = _open(config_path)
+    review_latest(config, store)
