@@ -12,15 +12,19 @@ Python 3.10+ is required.
 git clone <this repo> && cd Social-growth-assistant
 python3 -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -e .
-sga init                                                 # creates config.yaml and .env
+sga init                                                 # creates config.yaml
 ```
 
-### 2. Anthropic API key (~2 min)
-Create a key at https://console.anthropic.com → API keys, then put it in `.env`:
+### 2. Claude Code login (~2 min, no API key)
+The tool calls Claude through the `claude` command, using your Claude subscription.
+If you don't have it yet, install it (https://claude.com/claude-code), then run once:
+```bash
+claude          # log in when prompted, then type /exit
+claude -p "say ok" --tools ""     # should print: ok
 ```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-`.env` is git-ignored. Never paste the key anywhere else.
+If `claude` lives somewhere unusual, put its full path in `config.yaml` → `llm.claude_path`.
+Leave `ANTHROPIC_API_KEY` unset: the tool strips it anyway, so the CLI always uses your
+login and never bills an API key.
 
 ### 3. Tell it who you are (`config.yaml` → `profile`, ~5 min)
 - `handle`: your X handle (so your own posts are never suggested)
@@ -83,4 +87,6 @@ the [README](../README.md) for cron/Task Scheduler lines, or just set a calendar
 - Capture stops working (badge at 0): send one `data/raw/` file, as in step 6.
 - Rankings feel off (wrong posts on top): tell me 2–3 examples of good and bad picks; I'll tune
   the scoring prompt and weights.
+- `claude CLI error: …` in the warnings: run `claude` once to check you're logged in and
+  haven't hit your plan's usage limit; the run continues with whatever finished.
 - Drafts don't sound like you: add more `voice_examples` first, then tell me what's off.

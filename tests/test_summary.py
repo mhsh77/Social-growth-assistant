@@ -33,7 +33,7 @@ def test_summarize_day_counts_only_that_day():
     store.log_event("r1", c, "approved", now=NOON + 86400)  # next day
 
     s = summarize_day(store, DAY)
-    assert (s.runs, s.captured, s.after_filters, s.shortlisted) == (2, 95, 40, 10)
+    assert (s.runs, s.captured, s.after_filters, s.shortlisted) == (2, 95, 30, 7)
     assert (s.reviewed, s.approved, s.edited, s.skipped) == (3, 1, 1, 1)
     assert s.approved_by_source == {"DAO treasury": 1, "monitored accounts": 1}
     text = format_summary(s)
@@ -42,3 +42,12 @@ def test_summarize_day_counts_only_that_day():
 
 def test_empty_day():
     assert "no activity" in format_summary(summarize_day(Store(":memory:"), DAY - timedelta(1)))
+
+
+def test_shortlisted_counts_unique_posts_across_runs():
+    store = Store(":memory:")
+    store.record_run("r1", captured=5, after_filters=5, shortlisted=2, now=NOON)
+    store.record_run("r2", captured=6, after_filters=5, shortlisted=2, now=NOON + 60)
+    store.save_shortlist("r1", [item("1", ""), item("2", "")], now=NOON)
+    store.save_shortlist("r2", [item("2", ""), item("3", "")], now=NOON + 60)
+    assert summarize_day(store, DAY).shortlisted == 3

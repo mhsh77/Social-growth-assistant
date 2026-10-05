@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from .config import Config
@@ -220,14 +221,20 @@ def drafts_for_item(client: Any, item: ShortlistItem, config: Config) -> list[Dr
 
 def draft_replies(client: Any, shortlist: list[ShortlistItem], config: Config) -> list[str]:
     """Fill `drafts` on each item in place. Returns warnings; failures never stop the run."""
-    warnings = []
-    for item in shortlist:
+
+    def work(item: ShortlistItem) -> str | None:
         try:
             item.drafts = drafts_for_item(client, item, config)
         except LLMError as err:
-            warnings.append(f"No drafts for @{item.post.author_handle}: {err}")
-            continue
-        if not item.drafts:
+            return f"No drafts for @{item.post.author_handle}: {err}"
+        return None
+
+    with ThreadPoolExecutor(max_workers=config.llm.max_parallel) as pool:
+        errors = list(pool.map(work, shortlist))
+
+    warnings = [e for e in errors if e]
+    for item, error in zip(shortlist, errors, strict=True):
+        if not error and not item.drafts:
             warnings.append(
                 f"No draft for @{item.post.author_handle} passed the checks; "
                 "write your own or skip."

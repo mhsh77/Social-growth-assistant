@@ -38,11 +38,15 @@ def _day_bounds(day: date) -> tuple[float, float]:
 def summarize_day(store: Store, day: date) -> DaySummary:
     start, end = _day_bounds(day)
     summary = DaySummary(day=day)
-    for run in store.runs_between(start, end):
+    runs = store.runs_between(start, end)
+    # Later runs re-read the same cache, so report peaks/unique posts instead of sums.
+    for run in runs:
         summary.runs += 1
         summary.captured = max(summary.captured, run["captured"])
-        summary.after_filters += run["after_filters"]
-        summary.shortlisted += run["shortlisted"]
+        summary.after_filters = max(summary.after_filters, run["after_filters"])
+        summary.shortlisted = max(summary.shortlisted, run["shortlisted"])
+    unique = store.shortlisted_post_ids([r["run_id"] for r in runs])
+    summary.shortlisted = max(summary.shortlisted, len(unique))  # shortlists purge after TTL
 
     reviewed: set[str] = set()
     for event in store.events_between(start, end):

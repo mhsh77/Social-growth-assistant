@@ -116,6 +116,15 @@ class Store:
                     (run_id, rank, item.post.id, item.model_dump_json(), now),
                 )
 
+    def shortlisted_post_ids(self, run_ids: list[str]) -> set[str]:
+        if not run_ids:
+            return set()
+        marks = ",".join("?" * len(run_ids))
+        rows = self.conn.execute(
+            f"SELECT DISTINCT post_id FROM shortlist WHERE run_id IN ({marks})", run_ids
+        )
+        return {r["post_id"] for r in rows}
+
     def latest_run_id(self) -> str | None:
         row = self.conn.execute(
             "SELECT run_id FROM shortlist ORDER BY created_at DESC LIMIT 1"

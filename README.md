@@ -52,6 +52,7 @@ your browser (x.com search / List tabs you opened)
 | `sga/ingest.py` | Local capture server (localhost, extension origins, JSON only) |
 | `sga/parser.py` | Extract the minimum post fields from X's GraphQL JSON |
 | `sga/filters.py` | Age, followers, replies, language, own/excluded handles, dedupe |
+| `sga/llm.py` | Model calls via the `claude` CLI (default) or the Anthropic API |
 | `sga/ranking.py` | LLM scoring, combined score, thresholds, one post per author |
 | `sga/drafting.py` | Draft generation, X-weighted length and rule checks, retry |
 | `sga/review.py` | Interactive per-item review and reply-intent links |
@@ -61,14 +62,23 @@ your browser (x.com search / List tabs you opened)
 ## Configuration
 
 Everything lives in `config.yaml` (created by `sga init` from
-[config.example.yaml](config.example.yaml)); the Anthropic API key lives in `.env`.
+[config.example.yaml](config.example.yaml)).
+
+**Claude access:** by default the tool runs the `claude` command (Claude Code) in
+non-interactive mode, so it uses the Claude subscription you're logged in with. No API
+key is needed. Each call runs with all tools and MCP servers disabled: it only reads the
+prompt and returns JSON. To pay per token instead, set `llm.backend: api` and put
+`ANTHROPIC_API_KEY` in `.env`.
+
 Key settings: `sources.keywords`, `sources.list_urls`, `filters.max_age_hours`,
 `filters.min_followers` / `max_followers`, `ranking.shortlist_size`, `ranking.model` /
 `drafting.model`, `review.reply_mode`.
 
-**Cost:** X costs nothing. Claude usage per run is roughly 6 ranking calls (60 posts in
-batches of 10) plus about 7 drafting calls. To spend less, lower `ranking.max_to_rank`,
-or set `ranking.model: claude-haiku-4-5` with `ranking.effort: null`.
+**Usage:** X costs nothing. A run makes about 6 ranking calls (60 posts in batches of 10)
+plus about 7 drafting calls (3 at a time), which count toward your Claude plan's usage
+limits. A 5-post test run took under 20 seconds. To use less, lower
+`ranking.max_to_rank`, or set `ranking.model: claude-haiku-4-5` with
+`ranking.effort: null`.
 
 ## Scheduling
 

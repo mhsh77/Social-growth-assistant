@@ -87,7 +87,11 @@ class Review(BaseModel):
 
 
 class LLM(BaseModel):
-    refusal_fallback: bool = True
+    backend: Literal["claude_cli", "api"] = "claude_cli"
+    claude_path: str = "claude"  # the Claude Code CLI; uses your logged-in subscription
+    timeout_seconds: float = Field(default=300, gt=0)
+    max_parallel: int = Field(default=3, ge=1, le=8)  # concurrent drafting calls
+    refusal_fallback: bool = True  # api backend only
 
 
 class Storage(BaseModel):

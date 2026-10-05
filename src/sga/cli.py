@@ -165,7 +165,7 @@ def shortlist(
     """Filter, rank, draft and save a shortlist from captured posts."""
     load_dotenv()
     config, store = _open(config_path)
-    print_run(build_shortlist(config, store, make_client(), with_drafts=drafts))
+    print_run(build_shortlist(config, store, make_client(config.llm), with_drafts=drafts))
 
 
 def review_latest(config: Config, store: Store) -> None:
@@ -209,7 +209,7 @@ def daily(
     console.print(format_summary(summarize_day(store, date.today() - timedelta(days=1))))
     console.rule("Today")
     with console.status("Filtering, ranking and drafting…"):
-        result = build_shortlist(config, store, make_client())
+        result = build_shortlist(config, store, make_client(config.llm))
     print_run(result)
     if review_after and result.shortlist:
         console.rule("Review")

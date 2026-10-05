@@ -59,7 +59,14 @@ review:
   reply_mode: intent
 
 llm:
-  refusal_fallback: true      # retry a declined request on a fallback model (server side)
+  # claude_cli: runs the `claude` command (Claude Code), so it uses your Claude subscription
+  #             login. No API key needed.
+  # api:        uses the Anthropic API with ANTHROPIC_API_KEY from .env (pay per token).
+  backend: claude_cli
+  claude_path: claude         # full path if `claude` isn't on your PATH
+  timeout_seconds: 300
+  max_parallel: 3             # drafts generated at the same time
+  refusal_fallback: true      # api backend only: retry a declined request on a fallback model
 
 storage:
   data_dir: data
