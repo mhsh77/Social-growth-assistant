@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Social Growth Assistant - capture",
+  "version": "0.1.0",
+  "description": "Forwards posts already loaded on X search and List pages you open yourself to your local assistant on 127.0.0.1. Makes no requests to X and cannot post.",
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "SGA capture: badge = posts cached locally" },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

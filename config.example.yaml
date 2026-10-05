@@ -1,0 +1,68 @@
+# Social Growth Assistant configuration.
+# Copy to config.yaml (git-ignored) and edit. Every field has a default,
+# so you only need to set what you want to change.
+
+profile:
+  handle: ""              # your X handle without @ (your own posts are never shortlisted)
+  name: ""
+  project_name: ""        # e.g. "Acme Evals"
+  project_url: ""         # mentioned only when directly relevant, never in the first line
+  offer: >-
+    Freelance AI engineer: I build and evaluate RAG systems and LLM agents,
+    including tooling for Web3 / DeFi / DAO teams.
+  voice_examples: []      # 2-3 posts or replies you wrote, so drafts sound like you
+  topics:
+    - RAG and retrieval quality, hallucination reduction
+    - Evaluating LLM systems (evals, benchmarks, regression testing)
+    - AI agents for Web3, DeFi and DAO tooling
+    - Freelance / independent AI engineering
+
+sources:
+  # Each keyword becomes an X search ("Latest" tab) that `sga collect` opens for you.
+  keywords:
+    - "RAG hallucination"
+    - "DAO treasury"
+    - "Web3 AI agent"
+  # X Lists holding the accounts you monitor (create them in X; see docs/YOUR_STEPS.md).
+  list_urls: []
+  # Handles in those lists, used to tag *why* a post was suggested.
+  monitored_accounts: []
+  search_language: en     # appended to searches as lang:<code>; "" to disable
+
+filters:
+  max_age_hours: 24
+  min_followers: 200          # skip likely spam / throwaway accounts
+  max_followers: 200000       # skip huge accounts where a reply is invisible
+  follower_filter_applies_to_monitored: false   # monitored accounts are curated, so exempt by default
+  languages: [en]             # empty list = any language
+  include_replies: false      # only top-level posts by default
+  exclude_handles: []
+
+ranking:
+  model: claude-opus-5-5
+  effort: low                 # classification is simple; raise if ranking looks off
+  shortlist_size: 7
+  min_relevance: 5            # 0-10
+  min_opportunity: 4          # 0-10
+  batch_size: 10              # posts per classification request
+
+drafting:
+  model: claude-opus-5-5
+  effort: medium
+  drafts_per_post: 2
+  max_chars: 280
+
+review:
+  # intent: opens X's reply composer with the draft pre-filled; you click Reply.
+  # open_post: opens the post and copies nothing; the draft is printed for you to paste.
+  reply_mode: intent
+
+llm:
+  refusal_fallback: true      # retry a declined request on a fallback model (server side)
+
+storage:
+  data_dir: data
+  cache_ttl_hours: 72         # captured posts and shortlists are deleted after this
+
+server:
+  port: 8765                  # must match extension/background.js
